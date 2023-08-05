@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "lesson-drf"
+version = "0.1.0"
+description = ""
+authors = ["Mark Pochivalov <pochivalov.mark@gmail.com>"]
+readme = "README.md"
+packages = [{include = "lesson_drf"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2.4"
+psycopg2 = "^2.9.7"
+djangorestframework = "^3.14.0"
+pillow = "^10.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
