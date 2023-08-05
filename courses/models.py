@@ -23,6 +23,9 @@ class Lesson(models.Model):
     description = models.TextField(verbose_name='description')
     video_url = models.URLField(verbose_name='video_url')
 
+    course = models.ForeignKey(Course, on_delete=models.CASCADE,
+                               verbose_name='course')
+
     def __str__(self):
         return f'{self.name}'
 
