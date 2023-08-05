@@ -1,10 +1,14 @@
 from django.urls import path
+from rest_framework import routers
 
 from courses.apps import CoursesConfig
 from courses.views import LessonListAPIView, LessonCreateAPIView, \
-    LessonRetrieveAPIView, LessonUpdateAPIView
+    LessonRetrieveAPIView, LessonUpdateAPIView, CourseViewSet
 
 app_name = CoursesConfig.name
+
+router = routers.DefaultRouter()
+router.register('courses', CourseViewSet, basename='courses')
 
 urlpatterns = [
     path('lesson/', LessonListAPIView.as_view(), name='lesson-list'),
@@ -12,4 +16,4 @@ urlpatterns = [
     path('lesson/<int:pk>/', LessonRetrieveAPIView.as_view(), name='lesson-detail'),
     path('lesson/<int:pk>/update/', LessonUpdateAPIView.as_view(), name='lesson-update'),
     path('lesson/<int:pk>/delete/', LessonUpdateAPIView.as_view(), name='lesson-delete'),
-]
+] + router.urls

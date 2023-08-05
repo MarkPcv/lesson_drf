@@ -21,7 +21,7 @@ class Lesson(models.Model):
     name = models.CharField(max_length=100, verbose_name='name')
     preview = models.ImageField(**NULLABLE, verbose_name='image')
     description = models.TextField(verbose_name='description')
-    video_url = models.URLField(verbose_name='video_url')
+    video_url = models.URLField(verbose_name='video_url', **NULLABLE)
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
                                verbose_name='course')
