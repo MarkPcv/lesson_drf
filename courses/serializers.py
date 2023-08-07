@@ -11,7 +11,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
 
 class CourseSerializer(serializers.ModelSerializer):
-    lesson_count = IntegerField(source='lesson_set.count')
+    lesson_count = IntegerField(source='lesson_set.count', required=False)
 
     class Meta:
         model = Course
