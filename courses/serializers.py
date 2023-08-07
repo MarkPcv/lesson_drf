@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import IntegerField
 
-from courses.models import Lesson, Course
+from courses.models import Lesson, Course, Payment
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -17,4 +17,11 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
+        fields = '__all__'
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Payment
         fields = '__all__'
