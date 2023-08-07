@@ -1,5 +1,7 @@
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, viewsets
+from rest_framework.filters import OrderingFilter
 
 from courses.models import Lesson, Course, Payment
 from courses.serializers import CourseSerializer, LessonSerializer, \
@@ -37,3 +39,5 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
 class PaymentListAPIView(generics.ListAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ('date_paid',)
