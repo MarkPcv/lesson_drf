@@ -41,3 +41,4 @@ class PaymentListAPIView(generics.ListAPIView):
     serializer_class = PaymentSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ('date_paid',)
+    filterset_fields = ('course', 'lesson', 'type',)
