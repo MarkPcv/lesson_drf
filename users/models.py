@@ -8,6 +8,9 @@ NULLABLE = {
 
 
 class User(AbstractUser):
+    """
+    Stores a single user entry for authenticated users.
+    """
     username = None
     email = models.EmailField(unique=True, verbose_name='email')
 

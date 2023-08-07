@@ -45,6 +45,8 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'django_filters',
+    # For commenting
+    'django.contrib.admindocs',
 
     'users',
     'courses',
