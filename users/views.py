@@ -7,6 +7,8 @@ from users.serializers import UserSerializer
 
 
 class UserViewSet(viewsets.ViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
     def retrieve(self, request, pk=None):
         queryset = User.objects.all()
