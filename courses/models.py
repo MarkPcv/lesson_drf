@@ -24,7 +24,7 @@ class Lesson(models.Model):
     video_url = models.URLField(verbose_name='video_url', **NULLABLE)
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
-                               verbose_name='course')
+                               verbose_name='course', related_name='lessons')
 
     def __str__(self):
         return f'{self.name}'
