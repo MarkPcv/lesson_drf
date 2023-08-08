@@ -14,7 +14,7 @@ class Course(models.Model):
     # User that creates the course
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE,
-                              verbose_name='owner')
+                              verbose_name='owner', **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
@@ -38,7 +38,8 @@ class Lesson(models.Model):
                                verbose_name='course', related_name='lessons')
     # User that creates the lesson
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
-                              on_delete=models.CASCADE, verbose_name='owner')
+                              on_delete=models.CASCADE, verbose_name='owner',
+                              **NULLABLE)
 
     def __str__(self):
         return f'{self.name}'
