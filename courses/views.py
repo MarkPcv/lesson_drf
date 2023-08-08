@@ -20,17 +20,25 @@ class CourseViewSet(viewsets.ModelViewSet):
     # Define permissions
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        """Override CREATE action"""
-        # Define permissions
-        self.permission_classes = [IsAuthenticated & ~IsModerator]
-        return super().create(request, *args, **kwargs)
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        # Define permissions based on view action
+        if self.action == 'list':
+            # List is shown to any authorized personnel
+            permission_classes = [IsAuthenticated]
+        elif self.action == 'retrieve':
+            # Only Owner or Moderator can view this course
+            permission_classes = [IsAuthenticated & (IsModerator | IsOwner)]
+        elif self.action == 'create':
+            # All users (except moderators) can create lesson
+            permission_classes = [IsAuthenticated & ~IsModerator]
+        elif self.action == 'destroy':
+            # Only Owner can delete this course
+            permission_classes = [IsAuthenticated & IsOwner]
 
-    def destroy(self, request, *args, **kwargs):
-        """Override DELETE action"""
-        # Define permissions
-        self.permission_classes = [IsAuthenticated & IsOwner]
-        return super().destroy(request, *args, **kwargs)
+        return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
         """Save owner field during creation"""
@@ -42,8 +50,10 @@ class CourseViewSet(viewsets.ModelViewSet):
         """Override LIST action"""
         # Check if user is NOT moderator
         if self.request.user.role != UserRoles.MODERATOR:
+            # Return the list of user's courses
             self.queryset = Course.objects.filter(owner=self.request.user)
         else:
+            # Return all courses
             self.queryset = Course.objects.all()
         return super().list(request, *args, **kwargs)
 
@@ -54,6 +64,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
     """
     serializer_class = LessonSerializer
     # Define permissions
+    # All users (except moderators) can create lesson
     permission_classes = [IsAuthenticated & ~IsModerator]
 
     def perform_create(self, serializer):
@@ -70,14 +81,17 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
+    # List is shown to any authorized personnel
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Method that return queryset for controller"""
         # Check if user is NOT moderator
         if self.request.user.role != UserRoles.MODERATOR:
+            # Return the list of user's lessons
             queryset = Lesson.objects.filter(owner=self.request.user)
         else:
+            # Return all lessons
             queryset = Lesson.objects.all()
         return queryset
 
@@ -88,8 +102,9 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     """
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    # Define permissions
-    permission_classes = [IsAuthenticated | IsModerator | IsOwner]
+    # Define permissions:
+    # Only Owner or Moderator can view this lesson
+    permission_classes = [IsAuthenticated & (IsModerator | IsOwner)]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
@@ -99,7 +114,8 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated | IsModerator]
+    # Only Owner or Moderator can edit this lesson
+    permission_classes = [IsAuthenticated & (IsModerator | IsOwner)]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
@@ -108,6 +124,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     """
     queryset = Lesson.objects.all()
     # Define permissions
+    # Only Owner can delete this lesson
     permission_classes = [IsAuthenticated & IsOwner]
 
 
@@ -124,4 +141,5 @@ class PaymentListAPIView(generics.ListAPIView):
     # Define filtering settings
     filterset_fields = ('course', 'lesson', 'type',)
     # Define permissions
+    # Payment can be done by any authorized personnel
     permission_classes = [IsAuthenticated]
