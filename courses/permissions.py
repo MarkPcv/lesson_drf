@@ -7,6 +7,11 @@ class IsModerator(BasePermission):
     message = "You are not moderator"
 
     def has_permission(self, request, view):
-        if request.user.role == UserRoles.MODERATOR:
-            return True
-        return False
+        return request.user.role == UserRoles.MODERATOR
+
+
+class IsOwner(BasePermission):
+    message = "You are not an owner of this entity"
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.owner
