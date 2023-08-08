@@ -5,9 +5,10 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from courses.models import Lesson, Course, Payment
-from courses.permissions import IsModerator
+from courses.permissions import IsModerator, IsOwner
 from courses.serializers import CourseSerializer, LessonSerializer, \
     PaymentSerializer
+from users.models import UserRoles
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -28,8 +29,23 @@ class CourseViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         """Override DELETE action"""
         # Define permissions
-        self.permission_classes = [IsAuthenticated & ~IsModerator]
+        self.permission_classes = [IsAuthenticated & IsOwner]
         return super().destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        """Save owner field during creation"""
+        new_course = serializer.save()
+        new_course.owner = self.request.user
+        new_course.save()
+
+    def list(self, request, *args, **kwargs):
+        """Override LIST action"""
+        # Check if user is NOT moderator
+        if self.request.user.role != UserRoles.MODERATOR:
+            self.queryset = Course.objects.filter(owner=self.request.user)
+        else:
+            self.queryset = Course.objects.all()
+        return super().list(request, *args, **kwargs)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -40,6 +56,12 @@ class LessonCreateAPIView(generics.CreateAPIView):
     # Define permissions
     permission_classes = [IsAuthenticated & ~IsModerator]
 
+    def perform_create(self, serializer):
+        """Save owner field during creation"""
+        new_lesson = serializer.save()
+        new_lesson.owner = self.request.user
+        new_lesson.save()
+
 
 class LessonListAPIView(generics.ListAPIView):
     """
@@ -48,7 +70,16 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated | IsModerator]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Method that return queryset for controller"""
+        # Check if user is NOT moderator
+        if self.request.user.role != UserRoles.MODERATOR:
+            queryset = Lesson.objects.filter(owner=self.request.user)
+        else:
+            queryset = Lesson.objects.all()
+        return queryset
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
@@ -58,7 +89,7 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated | IsModerator]
+    permission_classes = [IsAuthenticated | IsModerator | IsOwner]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
@@ -77,7 +108,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     """
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated & ~IsModerator]
+    permission_classes = [IsAuthenticated & IsOwner]
 
 
 class PaymentListAPIView(generics.ListAPIView):
