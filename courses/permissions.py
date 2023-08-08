@@ -4,6 +4,8 @@ from users.models import UserRoles
 
 
 class IsModerator(BasePermission):
+    message = "You are not moderator"
+
     def has_permission(self, request, view):
         if request.user.role == UserRoles.MODERATOR:
             return True

@@ -5,6 +5,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from courses.models import Lesson, Course, Payment
+from courses.permissions import IsModerator
 from courses.serializers import CourseSerializer, LessonSerializer, \
     PaymentSerializer
 
@@ -18,6 +19,18 @@ class CourseViewSet(viewsets.ModelViewSet):
     # Define permissions
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        """Override CREATE action"""
+        # Define permissions
+        self.permission_classes = [IsAuthenticated & ~IsModerator]
+        return super().create(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Override DELETE action"""
+        # Define permissions
+        self.permission_classes = [IsAuthenticated & ~IsModerator]
+        return super().destroy(request, *args, **kwargs)
+
 
 class LessonCreateAPIView(generics.CreateAPIView):
     """
@@ -25,7 +38,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
     """
     serializer_class = LessonSerializer
     # Define permissions
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated & ~IsModerator]
 
 
 class LessonListAPIView(generics.ListAPIView):
@@ -35,7 +48,7 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated | IsModerator]
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
@@ -45,7 +58,7 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated | IsModerator]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
@@ -55,7 +68,7 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated | IsModerator]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
@@ -64,7 +77,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     """
     queryset = Lesson.objects.all()
     # Define permissions
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated & ~IsModerator]
 
 
 class PaymentListAPIView(generics.ListAPIView):
