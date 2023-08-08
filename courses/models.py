@@ -10,6 +10,9 @@ class Course(models.Model):
     name = models.CharField(max_length=100, verbose_name='name')
     preview = models.ImageField(**NULLABLE, verbose_name='image')
     description = models.TextField(verbose_name='description')
+    # User that creates the course
+    owner = models.ForeignKey(User, on_delete=models.CASCADE,
+                              verbose_name='owner')
 
     def __str__(self):
         return f'{self.name}'
@@ -31,6 +34,8 @@ class Lesson(models.Model):
 
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
                                verbose_name='course', related_name='lessons')
+    # User that creates the lesson
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='owner')
 
     def __str__(self):
         return f'{self.name}'
