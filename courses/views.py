@@ -17,8 +17,6 @@ class CourseViewSet(viewsets.ModelViewSet):
     """
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
-    # Define permissions
-    permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
         """
@@ -30,13 +28,13 @@ class CourseViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         elif self.action == 'retrieve':
             # Only Owner or Moderator can view this course
-            permission_classes = [IsAuthenticated & (IsModerator | IsOwner)]
+            permission_classes = [IsModerator | IsOwner]
         elif self.action == 'create':
             # All users (except moderators) can create lesson
-            permission_classes = [IsAuthenticated & ~IsModerator]
+            permission_classes = [~IsModerator]
         elif self.action == 'destroy':
             # Only Owner can delete this course
-            permission_classes = [IsAuthenticated & IsOwner]
+            permission_classes = [IsOwner]
 
         return [permission() for permission in permission_classes]
 
@@ -65,7 +63,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializer
     # Define permissions
     # All users (except moderators) can create lesson
-    permission_classes = [IsAuthenticated & ~IsModerator]
+    permission_classes = [~IsModerator]
 
     def perform_create(self, serializer):
         """Save owner field during creation"""
@@ -80,9 +78,6 @@ class LessonListAPIView(generics.ListAPIView):
     """
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    # Define permissions
-    # List is shown to any authorized personnel
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Method that return queryset for controller"""
@@ -104,7 +99,7 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Lesson.objects.all()
     # Define permissions:
     # Only Owner or Moderator can view this lesson
-    permission_classes = [IsAuthenticated & (IsModerator | IsOwner)]
+    permission_classes = [IsModerator | IsOwner]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
@@ -115,7 +110,7 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     queryset = Lesson.objects.all()
     # Define permissions
     # Only Owner or Moderator can edit this lesson
-    permission_classes = [IsAuthenticated & (IsModerator | IsOwner)]
+    permission_classes = [IsModerator | IsOwner]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
@@ -125,7 +120,7 @@ class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
     # Define permissions
     # Only Owner can delete this lesson
-    permission_classes = [IsAuthenticated & IsOwner]
+    permission_classes = [IsOwner]
 
 
 class PaymentListAPIView(generics.ListAPIView):
@@ -140,6 +135,3 @@ class PaymentListAPIView(generics.ListAPIView):
     ordering_fields = ('date_paid',)
     # Define filtering settings
     filterset_fields = ('course', 'lesson', 'type',)
-    # Define permissions
-    # Payment can be done by any authorized personnel
-    permission_classes = [IsAuthenticated]
