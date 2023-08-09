@@ -23,5 +23,5 @@ urlpatterns = [
 
     # subscriptions
     path('courses/subscribe/', SubscriptionCreateAPIView.as_view(), name='subscribe'),
-    path('courses/unsubscribe/', SubscriptionDestroyAPIView.as_view(), name='unsubscribe'),
+    path('courses/<int:pk>/unsubscribe/', SubscriptionDestroyAPIView.as_view(), name='unsubscribe'),
 ] + router.urls

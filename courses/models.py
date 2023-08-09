@@ -86,5 +86,12 @@ class Subscription(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE,
                                verbose_name='course')
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE, verbose_name='user')
+                             on_delete=models.CASCADE, verbose_name='user',
+                             **NULLABLE)
 
+    def __str__(self):
+        return f'{self.user.email} subscribed to {self.course.name}'
+
+    class Meta:
+        verbose_name = 'subscription'
+        verbose_name_plural = 'subscriptions'
