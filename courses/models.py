@@ -76,3 +76,15 @@ class Payment(models.Model):
         verbose_name = 'payment'
         verbose_name_plural = 'payments'
         ordering = ('-date_paid',)
+
+
+class Subscription(models.Model):
+    """
+    Stores a single subscription to course entry, related to
+    :model:`courses.Course` and to :model:`users.User` .
+    """
+    course = models.ForeignKey(Course, on_delete=models.CASCADE,
+                               verbose_name='course')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE, verbose_name='user')
+
