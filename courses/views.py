@@ -1,13 +1,14 @@
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 from rest_framework.filters import OrderingFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from courses.models import Lesson, Course, Payment, Subscription
 from courses.permissions import IsModerator, IsOwner
 from courses.serializers import CourseSerializer, LessonSerializer, \
-    PaymentSerializer, SubscriptionSerializer
+    PaymentSerializer, SubscriptionSerializer, CourseSubSerializer
 from users.models import UserRoles
 
 
@@ -23,10 +24,7 @@ class CourseViewSet(viewsets.ModelViewSet):
         Instantiates and returns the list of permissions that this view requires.
         """
         # Define permissions based on view action
-        if self.action == 'list':
-            # List is shown to any authorized personnel
-            permission_classes = [IsAuthenticated]
-        elif self.action == 'retrieve':
+        if self.action == 'retrieve':
             # Only Owner or Moderator can view this course
             permission_classes = [IsModerator | IsOwner]
         elif self.action == 'create':
@@ -54,6 +52,17 @@ class CourseViewSet(viewsets.ModelViewSet):
             # Return all courses
             self.queryset = Course.objects.all()
         return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Override READ action"""
+
+        # Check if user is NOT moderator
+        if self.request.user.role != UserRoles.MODERATOR:
+            serializer = CourseSubSerializer(self.get_object(), context={'request': request})
+            return Response(serializer.data)
+        return super().retrieve(request, *args, **kwargs)
+
+    # def get_serializer_context(self):
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -143,6 +152,14 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
     """
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
+    # All users (except moderators) can subscribe
+    permission_classes = [~IsModerator]
+
+    def perform_create(self, serializer):
+        """Save user field during creation"""
+        new_sub = serializer.save()
+        new_sub.user = self.request.user
+        new_sub.save()
 
 
 class SubscriptionDestroyAPIView(generics.DestroyAPIView):
@@ -151,5 +168,15 @@ class SubscriptionDestroyAPIView(generics.DestroyAPIView):
     """
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
+    # All users (except moderators) can unsubscribe
+    permission_classes = [~IsModerator]
 
-
+    def destroy(self, request, *args, **kwargs):
+        # Find course from DELETE request
+        course = Course.objects.get(pk=self.kwargs.get('pk'))
+        # Find instance of subscription for this course
+        instance = Subscription.objects.get(user=request.user, course=course)
+        # Delete instance from Database
+        self.perform_destroy(instance)
+        # Return HTTP response
+        return Response(status=status.HTTP_204_NO_CONTENT)
