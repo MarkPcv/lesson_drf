@@ -4,7 +4,7 @@ from rest_framework import routers
 from courses.apps import CoursesConfig
 from courses.views import LessonListAPIView, LessonCreateAPIView, \
     LessonRetrieveAPIView, LessonUpdateAPIView, CourseViewSet, \
-    PaymentListAPIView
+    PaymentListAPIView, SubscriptionCreateAPIView, SubscriptionDestroyAPIView
 
 app_name = CoursesConfig.name
 
@@ -20,4 +20,8 @@ urlpatterns = [
 
     # payments
     path('payments/', PaymentListAPIView.as_view(), name='payments-list'),
+
+    # subscriptions
+    path('courses/subscribe/', SubscriptionCreateAPIView.as_view(), name='subscribe'),
+    path('courses/unsubscribe/', SubscriptionDestroyAPIView.as_view(), name='unsubscribe'),
 ] + router.urls

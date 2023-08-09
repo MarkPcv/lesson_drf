@@ -4,10 +4,10 @@ from rest_framework import generics, viewsets
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
-from courses.models import Lesson, Course, Payment
+from courses.models import Lesson, Course, Payment, Subscription
 from courses.permissions import IsModerator, IsOwner
 from courses.serializers import CourseSerializer, LessonSerializer, \
-    PaymentSerializer
+    PaymentSerializer, SubscriptionSerializer
 from users.models import UserRoles
 
 
@@ -135,3 +135,21 @@ class PaymentListAPIView(generics.ListAPIView):
     ordering_fields = ('date_paid',)
     # Define filtering settings
     filterset_fields = ('course', 'lesson', 'type',)
+
+
+class SubscriptionCreateAPIView(generics.CreateAPIView):
+    """
+    Create DRF generic for :model:`courses.Subscription`
+    """
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+
+
+class SubscriptionDestroyAPIView(generics.DestroyAPIView):
+    """
+    Delete DRF generic for :model:`courses.Subscription`
+    """
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+
+

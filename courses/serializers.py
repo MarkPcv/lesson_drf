@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import IntegerField
 
-from courses.models import Lesson, Course, Payment
+from courses.models import Lesson, Course, Payment, Subscription
 from courses.validators import validate_url
 
 
@@ -37,4 +37,13 @@ class PaymentSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Payment
+        fields = '__all__'
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """
+    Serializer for :model:`courses.Subscription`
+    """
+    class Meta:
+        model = Subscription,
         fields = '__all__'
