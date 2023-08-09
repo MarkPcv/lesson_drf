@@ -2,12 +2,16 @@ from rest_framework import serializers
 from rest_framework.fields import IntegerField
 
 from courses.models import Lesson, Course, Payment
+from courses.validators import validate_url
 
 
 class LessonSerializer(serializers.ModelSerializer):
     """
     Serializer for :model:`courses.Lesson`
     """
+    # Add validator to lesson field
+    video_url = serializers.URLField(validators=[validate_url])
+
     class Meta:
         model = Lesson
         fields = '__all__'
