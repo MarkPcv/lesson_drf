@@ -59,9 +59,11 @@ class LessonTest(APITestCase):
             'description': 'lesson2 description',
             'course': self.course.id,
         }
+
         # Create second lesson
         response = self.client.post(
             reverse("courses:lesson-create"),
+            data=data
         )
 
         self.assertEqual(
