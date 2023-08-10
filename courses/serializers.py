@@ -10,7 +10,7 @@ class LessonSerializer(serializers.ModelSerializer):
     Serializer for :model:`courses.Lesson`
     """
     # Add validator to lesson field
-    video_url = serializers.URLField(validators=[validate_url])
+    video_url = serializers.URLField(validators=[validate_url], required=False)
 
     class Meta:
         model = Lesson
