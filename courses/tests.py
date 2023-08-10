@@ -18,17 +18,6 @@ class LessonTest(APITestCase):
         self.user_member.set_password('test')
         self.user_member.save()
 
-        # Obtain token
-        # data = {
-        #     'email': 'test@gmail.com',
-        #     'password': 'test'
-        # }
-        # response = self.client.post(
-        #     reverse("users:token_obtain_pair"),
-        #     data=data
-        # )
-        # self.token_member = response.json()['access']
-
     def create_moderator(self):
         """Creates a new MODERATOR user"""
         # Create test user with MEMBER role
@@ -39,17 +28,6 @@ class LessonTest(APITestCase):
         )
         self.user_moderator.set_password('test')
         self.user_moderator.save()
-
-        # Obtain token
-        # data = {
-        #     'email': 'test@gmail.com',
-        #     'password': 'test'
-        # }
-        # response = self.client.post(
-        #     reverse("users:token_obtain_pair"),
-        #     data=data
-        # )
-        # self.token_moderator = response.json()['access']
 
     def setUp(self) -> None:
         """Set up initial objects for each test"""
@@ -68,6 +46,7 @@ class LessonTest(APITestCase):
             name='test lesson',
             description='lesson description',
             course=self.course,
+            owner=self.user_member
         )
 
     def test_create_lesson(self):
@@ -80,20 +59,16 @@ class LessonTest(APITestCase):
             'description': 'lesson2 description',
             'course': self.course.id,
         }
-
+        # Create second lesson
         response = self.client.post(
             reverse("courses:lesson-create"),
-            # data=data,
-            # headers={
-            #     'Authorization': f'Bearer {self.token_member}'
-            # },
         )
 
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED
         )
-
+        # Check total number of lessons
         self.assertEqual(
             Lesson.objects.count(),
             2
@@ -101,22 +76,18 @@ class LessonTest(APITestCase):
 
     def test_get_list(self):
         """Testing retrieval of list of lessons """
-        # Authenticate user without token
+        # Authenticate MODERATOR without token
         self.client.force_authenticate(self.user_moderator)
-
+        # Get list of lessons
         response = self.client.get(
             reverse("courses:lesson-list"),
-            # headers={
-            #     'Authorization': f'Bearer {self.token_moderator}'
-            # },
-            # user=self.user_moderator,
         )
 
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
         )
-
+        # Check list data
         self.assertEqual(
             response.json(),
             {
@@ -126,7 +97,7 @@ class LessonTest(APITestCase):
                 "results": [
                     {'id': 1, 'video_url': None, 'name': 'test lesson',
                      'preview': None, 'description': 'lesson description',
-                     'course': 1, 'owner': None}
+                     'course': 1, 'owner': 1}
                 ]
             }
         )
@@ -135,24 +106,65 @@ class LessonTest(APITestCase):
         """Testing retrieval of one lesson"""
         # Authenticate user without token
         self.client.force_authenticate(self.user_moderator)
-
+        # Get lesson
         response = self.client.get(
             reverse("courses:lesson-detail", kwargs={'pk': self.lesson.id}),
-            # headers={
-            #     'Authorization': f'Bearer {self.token_moderator}'
-            # },
-            # user=self.user_moderator,
         )
 
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
         )
-
+        # Check lesson data
         self.assertEqual(
             response.json(),
             {'id': 1, 'video_url': None, 'name': 'test lesson',
              'preview': None, 'description': 'lesson description',
-             'course': 1, 'owner': None}
+             'course': 1, 'owner': 1}
 
         )
+
+    def test_update_lesson(self):
+        """Testing lesson update"""
+        # Authenticate user without token
+        self.client.force_authenticate(self.user_moderator)
+        # Update name of lesson
+        data = {
+            'name': 'test lesson updated',
+        }
+
+        response = self.client.patch(
+            reverse("courses:lesson-update", kwargs={'pk': self.lesson.id}),
+            data=data
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+        # Check updated name
+        self.assertEqual(
+            Lesson.objects.get(pk=1).name,
+            'test lesson updated'
+        )
+
+    def test_delete_lesson(self):
+        """Testing lesson deletion"""
+        # Authenticate MEMBER without token and owner of current lesson
+        self.client.force_authenticate(self.user_member)
+        # print(Lesson.objects.get(pk=1).owner.email) # TODO: remove
+        # Delete lesson
+        response = self.client.delete(
+            reverse("courses:lesson-delete", kwargs={'pk': self.lesson.id})
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT
+        )
+        # Check that no lesson exists in Database
+        self.assertFalse(
+            Lesson.objects.exists()
+        )
+
+
