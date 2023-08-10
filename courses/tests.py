@@ -152,7 +152,6 @@ class LessonTest(APITestCase):
         """Testing lesson deletion"""
         # Authenticate MEMBER without token and owner of current lesson
         self.client.force_authenticate(self.user_member)
-        # print(Lesson.objects.get(pk=1).owner.email) # TODO: remove
         # Delete lesson
         response = self.client.delete(
             reverse("courses:lesson-delete", kwargs={'pk': self.lesson.id})
