@@ -6,6 +6,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from courses.models import Lesson, Course, Payment, Subscription
+from courses.paginators import DefaultPaginator
 from courses.permissions import IsModerator, IsOwner
 from courses.serializers import CourseSerializer, LessonSerializer, \
     PaymentSerializer, SubscriptionSerializer, CourseSubSerializer
@@ -18,6 +19,8 @@ class CourseViewSet(viewsets.ModelViewSet):
     """
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
+    # Add pagination
+    pagination_class = DefaultPaginator
 
     def get_permissions(self):
         """
@@ -33,6 +36,9 @@ class CourseViewSet(viewsets.ModelViewSet):
         elif self.action == 'destroy':
             # Only Owner can delete this course
             permission_classes = [IsOwner]
+        else:
+            # All users (including moderators)
+            permission_classes = []
 
         return [permission() for permission in permission_classes]
 
@@ -87,6 +93,8 @@ class LessonListAPIView(generics.ListAPIView):
     """
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
+    # Add pagination
+    pagination_class = DefaultPaginator
 
     def get_queryset(self):
         """Method that return queryset for controller"""
