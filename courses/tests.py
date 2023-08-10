@@ -130,3 +130,29 @@ class LessonTest(APITestCase):
                 ]
             }
         )
+
+    def test_get_lesson(self):
+        """Testing retrieval of one lesson"""
+        # Authenticate user without token
+        self.client.force_authenticate(self.user_moderator)
+
+        response = self.client.get(
+            reverse("courses:lesson-detail", kwargs={'pk': self.lesson.id}),
+            # headers={
+            #     'Authorization': f'Bearer {self.token_moderator}'
+            # },
+            # user=self.user_moderator,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        self.assertEqual(
+            response.json(),
+            {'id': 1, 'video_url': None, 'name': 'test lesson',
+             'preview': None, 'description': 'lesson description',
+             'course': 1, 'owner': None}
+
+        )
