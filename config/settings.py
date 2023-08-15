@@ -150,3 +150,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+STRIPE_API_KEY = os.getenv('STRIPE_API_KEY')
