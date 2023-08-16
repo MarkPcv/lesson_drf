@@ -17,6 +17,6 @@ def retrieve_payment(payment_id):
     response = stripe.PaymentIntent.retrieve(
                     payment_id,
                 )
-    if response['amount'] - response['amount_received'] > 0:
+    if response['amount'] - response['amount_received'] == 0:
         return 'paid'
     return 'unprocessed'

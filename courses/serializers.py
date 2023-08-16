@@ -37,6 +37,8 @@ class PaymentSerializer(serializers.ModelSerializer):
     """
     Serializer for :model:`courses.Payment`
     """
+    # Payment status
+    payment_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
@@ -50,6 +52,9 @@ class PaymentSerializer(serializers.ModelSerializer):
         )
         payment.save()
         return payment
+
+    def get_payment_status(self, payment):
+        return services.retrieve_payment(payment.payment_id)
 
 
 class PaymentRetrieveSerializer(serializers.ModelSerializer):

@@ -173,6 +173,7 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
     """
     Retrieve DRF generic for :model:`courses.Payment`
     """
+    serializer_class = PaymentSerializer
 
     def get_object(self):
         obj = Payment.objects.get(
@@ -181,9 +182,9 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
         )
         return obj
 
-    def retrieve(self, request, *args, **kwargs):
-        serializer = PaymentRetrieveSerializer(self.get_object(), context={'request': request})
-        return Response(serializer.data)
+    # def retrieve(self, request, *args, **kwargs):
+    #     serializer = PaymentRetrieveSerializer(self.get_object(), context={'request': request})
+    #     return Response(serializer.data)
 
 
 
