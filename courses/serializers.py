@@ -37,15 +37,19 @@ class PaymentSerializer(serializers.ModelSerializer):
     """
     Serializer for :model:`courses.Payment`
     """
-    # An ID of IntentPayment
-    payment_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Payment
         fields = '__all__'
 
-    def get_payment_id(self, payment):
-        return services.create_payment(payment)
+    def create(self, validated_data):
+        payment = Payment(
+            amount=validated_data['amount'],
+            type=validated_data['type'],
+            payment_id=services.create_payment(validated_data['amount']),
+        )
+        payment.save()
+        return payment
 
 
 class PaymentRetrieveSerializer(serializers.ModelSerializer):

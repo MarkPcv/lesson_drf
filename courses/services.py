@@ -2,10 +2,10 @@ import stripe   # library to handle payments
 from django.conf import settings
 
 
-def create_payment(instance):
+def create_payment(amount):
     stripe.api_key = settings.STRIPE_API_KEY
     response = stripe.PaymentIntent.create(
-                    amount=instance.amount,
+                    amount=amount,
                     currency="usd",
                     automatic_payment_methods={"enabled": True},
                 )

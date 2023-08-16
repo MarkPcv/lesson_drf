@@ -68,6 +68,10 @@ class Payment(models.Model):
     amount = models.PositiveIntegerField(verbose_name="amount")
     type = models.CharField(max_length=30, verbose_name="type")
 
+    # Payment id from STRIPE API
+    payment_id = models.CharField(max_length=100, verbose_name="payment_id",
+                                  **NULLABLE)
+
     def __str__(self):
         if self.lesson:
             return f'{self.user.email} paid {self.amount} for Lesson "{self.lesson.name}" via {self.type}'
