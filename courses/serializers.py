@@ -54,7 +54,7 @@ class PaymentSerializer(serializers.ModelSerializer):
         return payment
 
     def get_payment_status(self, payment):
-        return services.retrieve_payment(payment.payment_id)
+        return services.get_payment_status(payment.payment_id)
 
 
 class PaymentRetrieveSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ def create_payment(amount):
     return response['id']
 
 
-def retrieve_payment(payment_id):
+def get_payment_status(payment_id):
     stripe.api_key = settings.STRIPE_API_KEY
     response = stripe.PaymentIntent.retrieve(
                     payment_id,

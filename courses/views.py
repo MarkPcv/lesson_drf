@@ -182,12 +182,6 @@ class PaymentRetrieveAPIView(generics.RetrieveAPIView):
         )
         return obj
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     serializer = PaymentRetrieveSerializer(self.get_object(), context={'request': request})
-    #     return Response(serializer.data)
-
-
-
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):
     """
