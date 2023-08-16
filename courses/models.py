@@ -57,7 +57,8 @@ class Payment(models.Model):
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE,
-                             verbose_name='user', related_name='payments')
+                             verbose_name='user', related_name='payments',
+                             **NULLABLE)
     date_paid = models.DateTimeField(auto_now_add=True,
                                      verbose_name='date_paid')
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, **NULLABLE,

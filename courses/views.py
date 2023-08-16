@@ -9,7 +9,8 @@ from courses.models import Lesson, Course, Payment, Subscription
 from courses.paginators import DefaultPaginator
 from courses.permissions import IsModerator, IsOwner
 from courses.serializers import CourseSerializer, LessonSerializer, \
-    PaymentSerializer, SubscriptionSerializer, CourseSubSerializer
+    PaymentSerializer, SubscriptionSerializer, CourseSubSerializer, \
+    PaymentRetrieveSerializer
 from users.models import UserRoles
 
 
@@ -152,6 +153,39 @@ class PaymentListAPIView(generics.ListAPIView):
     ordering_fields = ('date_paid',)
     # Define filtering settings
     filterset_fields = ('course', 'lesson', 'type',)
+
+
+class PaymentCreateAPIView(generics.CreateAPIView):
+    """
+    Create DRF generic for :model:`courses.Payment`
+    """
+    serializer_class = PaymentSerializer
+
+    def perform_create(self, serializer):
+        """Save user and course field during creation"""
+        new_payment = serializer.save()
+        new_payment.user = self.request.user
+        new_payment.course = Course.objects.get(pk=self.kwargs.get('pk'))
+        new_payment.save()
+
+
+class PaymentRetrieveAPIView(generics.RetrieveAPIView):
+    """
+    Retrieve DRF generic for :model:`courses.Payment`
+    """
+
+    def get_object(self):
+        obj = Payment.objects.get(
+            user=self.request.user,
+            course=Course.objects.get(pk=self.kwargs.get('pk'))
+        )
+        return obj
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = PaymentRetrieveSerializer(self.get_object(), context={'request': request})
+        return Response(serializer.data)
+
+
 
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):

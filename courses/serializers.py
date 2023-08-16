@@ -4,6 +4,8 @@ from rest_framework.fields import IntegerField
 from courses.models import Lesson, Course, Payment, Subscription
 from courses.validators import validate_url
 
+from courses import services
+
 
 class LessonSerializer(serializers.ModelSerializer):
     """
@@ -35,9 +37,32 @@ class PaymentSerializer(serializers.ModelSerializer):
     """
     Serializer for :model:`courses.Payment`
     """
+    # An ID of IntentPayment
+    payment_id = serializers.SerializerMethodField()
+
     class Meta:
         model = Payment
         fields = '__all__'
+
+    def get_payment_id(self, payment):
+        return services.create_payment(payment)
+
+
+class PaymentRetrieveSerializer(serializers.ModelSerializer):
+    """
+    Serializer for :model:`courses.Payment`
+    """
+    # Payment status
+    payment_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+
+    def get_payment_status(self, payment):
+        return services.retrieve_payment(payment.payment_id)
+
+
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
