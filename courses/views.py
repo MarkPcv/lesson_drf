@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, viewsets, status
@@ -5,6 +7,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from config.tasks import send_notification
 from courses.models import Lesson, Course, Payment, Subscription
 from courses.paginators import DefaultPaginator
 from courses.permissions import IsModerator, IsOwner
@@ -69,7 +72,33 @@ class CourseViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return super().retrieve(request, *args, **kwargs)
 
-    # def get_serializer_context(self):
+    def update(self, request, *args, **kwargs):
+        """Override UPDATE action to notify subscribers of course"""
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data,
+                                         partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        # Get list of all subscribers
+        subscription_list = Subscription.objects.filter(course=instance)
+        # Check if at least one subscriber exists
+        if subscription_list:
+            for subscription in subscription_list:
+                # Send mail to each subscriber
+                send_notification.delay(
+                    subscription.course.name,
+                    subscription.user.email
+                )
+
+        return Response(serializer.data)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -129,6 +158,30 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     # Define permissions
     # Only Owner or Moderator can edit this lesson
     permission_classes = [IsModerator | IsOwner]
+
+    def perform_update(self, serializer):
+        updated_lesson = serializer.save()
+        updated_lesson.save()
+        # Get course
+        course = Course.objects.get(pk=updated_lesson.course_id)
+        # Record previous update time
+        prev_update_time = course.updated_at if course.updated_at else 0
+        # Add new update time (UTC)
+        course.updated_at = datetime.datetime.now()
+        course.save()
+        # Send notification if last update was more than 4 hours ago
+        # Moscow - UTC time
+        if course.updated_at - prev_update_time.replace(tzinfo=None) > datetime.timedelta(hours=7):
+            # Get list of all subscribers
+            subscription_list = Subscription.objects.filter(course=course)
+            # Check if at least one subscriber exists
+            if subscription_list:
+                for subscription in subscription_list:
+                    # Send mail to each subscriber
+                    send_notification.delay(
+                        subscription.course.name,
+                        subscription.user.email
+                    )
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
