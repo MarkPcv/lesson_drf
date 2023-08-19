@@ -5,6 +5,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from config.tasks import send_notification
 from courses.models import Lesson, Course, Payment, Subscription
 from courses.paginators import DefaultPaginator
 from courses.permissions import IsModerator, IsOwner
@@ -69,7 +70,33 @@ class CourseViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return super().retrieve(request, *args, **kwargs)
 
-    # def get_serializer_context(self):
+    def update(self, request, *args, **kwargs):
+        """Override UPDATE action to notify subscribers of course"""
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data,
+                                         partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        # Get list of all subscribers
+        subscription_list = Subscription.objects.filter(course=instance)
+        # Check if at least one subscriber exists
+        if subscription_list:
+            for subscription in subscription_list:
+                # Send mail to each subscriber
+                send_notification.delay(
+                    subscription.course.name,
+                    subscription.user.email
+                )
+
+        return Response(serializer.data)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
