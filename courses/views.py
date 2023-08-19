@@ -1,3 +1,5 @@
+import datetime
+
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, viewsets, status
@@ -156,6 +158,30 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     # Define permissions
     # Only Owner or Moderator can edit this lesson
     permission_classes = [IsModerator | IsOwner]
+
+    def perform_update(self, serializer):
+        updated_lesson = serializer.save()
+        updated_lesson.save()
+        # Get course
+        course = Course.objects.get(pk=updated_lesson.course_id)
+        # Record previous update time
+        prev_update_time = course.updated_at if course.updated_at else 0
+        # Add new update time (UTC)
+        course.updated_at = datetime.datetime.now()
+        course.save()
+        # Send notification if last update was more than 4 hours ago
+        # Moscow - UTC time
+        if course.updated_at - prev_update_time.replace(tzinfo=None) > datetime.timedelta(hours=7):
+            # Get list of all subscribers
+            subscription_list = Subscription.objects.filter(course=course)
+            # Check if at least one subscriber exists
+            if subscription_list:
+                for subscription in subscription_list:
+                    # Send mail to each subscriber
+                    send_notification.delay(
+                        subscription.course.name,
+                        subscription.user.email
+                    )
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):

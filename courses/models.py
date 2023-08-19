@@ -15,6 +15,8 @@ class Course(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE,
                               verbose_name='owner', **NULLABLE)
+    # Tracks when lesson was updated
+    updated_at = models.DateTimeField(**NULLABLE, verbose_name='updated_time')
 
     def __str__(self):
         return f'{self.name}'
