@@ -1,11 +1,9 @@
 import datetime
 
 from celery import shared_task
-from celery.app import task
 from django.conf import settings
 from django.core.mail import send_mail
 
-from courses.services import log_trial
 from users.models import User
 
 
