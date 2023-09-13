@@ -1,6 +1,11 @@
 version: '3'
 
 services:
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+
   db:
     image: postgres
     env_file:
@@ -29,6 +34,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  celery:
+    build: .
+    tty: true
+    command: celery -A config worker -l INFO
+    depends_on:
+      - redis
+      - app
+
+  celery_beat:
+    build: .
+    tty: true
+    command: celery -A config beat -l INFO -S django
+    depends_on:
+      - redis
+      - app
 
 volumes:
   pg_data:
